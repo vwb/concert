@@ -1,28 +1,69 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import logo from './logo.svg';
-import './App.css';
+import './App.scss';
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
-  }
+import ConnectToSpotify from './components/ConnectToSpotify';
+import {getUserSpofityData} from './api/spotify';
+
+const LoadingOverlay = ({shouldRender}) => {
+    let component = null;
+
+    if (shouldRender) {
+        component = (
+            <div style={{fontSize: '200px'}}>I AM LOADING</div>
+        );
+    }
+    
+    return component;
+}
+
+class App extends PureComponent {
+    state = {
+        isAuthenticated: false,
+        isLoading: false,
+        artists: [],
+    }
+
+    componentDidMount() {
+        if (window.location.hash.includes('access_token')) {
+            this.setState({
+                isAuthenticated: true,
+                isLoading: true,
+            }, () => {
+                const access_token = window.location.hash.split('&')[0].split('=')[1];
+
+                getUserSpofityData(access_token)
+                    .then(({items}) => {
+                        this.setState({
+                            artists: items,
+                            isLoading: false,
+                        })
+                    })
+            })
+        }
+    }
+
+    render() {
+        const {
+            isLoading,
+            isAuthenticated,
+            artists,
+        } = this.state;
+
+        return (
+            <div className="App">
+                <LoadingOverlay shouldRender={isLoading} />
+                <ConnectToSpotify shouldRender={!isAuthenticated} />
+                <ul>
+                {
+                    artists.map((artist) => (
+                        <li key={artist.id}>{artist.name}</li>
+                    ))
+                }
+                </ul>
+            </div>
+        );
+    }
 }
 
 export default App;
