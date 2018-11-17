@@ -3,20 +3,13 @@ import logo from './logo.svg';
 import './App.scss';
 
 import ConnectToSpotify from './components/ConnectToSpotify';
+import ArtistList from './components/ArtistList';
+import ShouldRender from './components/ShouldRender';
+
 import {getUserSpofityData} from './api/spotify';
 
-const LoadingOverlay = ({shouldRender}) => {
-    let component = null;
 
-    if (shouldRender) {
-        component = (
-            <div style={{fontSize: '200px'}}>I AM LOADING</div>
-        );
-    }
-    
-    return component;
-}
-
+//Extract artists/peformers to own context
 class App extends PureComponent {
     state = {
         isAuthenticated: false,
@@ -38,6 +31,8 @@ class App extends PureComponent {
                             artists: items,
                             isLoading: false,
                         })
+
+                        window.location.replace('#');
                     })
             })
         }
@@ -47,20 +42,20 @@ class App extends PureComponent {
         const {
             isLoading,
             isAuthenticated,
-            artists,
+            artists = [],
         } = this.state;
 
         return (
             <div className="App">
-                <LoadingOverlay shouldRender={isLoading} />
-                <ConnectToSpotify shouldRender={!isAuthenticated} />
-                <ul>
-                {
-                    artists.map((artist) => (
-                        <li key={artist.id}>{artist.name}</li>
-                    ))
-                }
-                </ul>
+                <ShouldRender shouldRender={isLoading}>
+                    <div style={{fontSize: '200px'}}>I AM LOADING</div>
+                </ShouldRender>
+                <ShouldRender shouldRender={!isAuthenticated}>
+                    <ConnectToSpotify shouldRender={!isAuthenticated} />
+                </ShouldRender>
+                <ShouldRender shouldRender={(artists.length > 0)}>
+                    <ArtistList artists={artists} />
+                </ShouldRender>
             </div>
         );
     }
